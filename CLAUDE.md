@@ -97,7 +97,7 @@ This is the heart of the system. All safety logic lives here.
 | Task | Priority | Period | Job |
 |------|----------|--------|-----|
 | `SensorPollTask` | Normal | 100ms | I2C read from Arduino, post to queue |
-| `LocalSensorTask` | Normal | 50ms | Read vibration (SW-520D), RFID, keypad directly |
+| `LocalSensorTask` | Normal | 50ms | Read RFID, keypad directly |
 | `SafetyTask` | **High** | 20ms | Check thresholds, trigger alarms, control relay/servo |
 | `ActuatorTask` | Normal | 50ms | Drive stepper, servo, buzzer, LEDs based on commands |
 | `DisplayTask` | Low | 200ms | Update 1602 LCD with current status |
@@ -109,7 +109,6 @@ This is the heart of the system. All safety logic lives here.
 ```
 FLAME detected        → relay OFF (cuts power), servo LOCK, buzzer ON, RED LED
 WATER detected        → relay OFF, buzzer ON, ORANGE LED
-VIBRATION spike       → log event, YELLOW LED blink, alert to Pi
 TEMP > threshold      → stepper motor spins (fan simulation), alert
 RFID + valid card     → servo UNLOCK door, GREEN LED
 RFID + invalid card   → buzzer short beep, RED LED
@@ -119,6 +118,12 @@ Arduino silent        → FAIL-SAFE triggered (see Fail-Safe section)
 
 **Critical requirement:** Actuator response to alarm must be <20ms.
 
+### System States
+
+- **ARMED / DISARMED** — toggled by a correct keypad PIN (local), or by a Pi `COMMAND` (remote — rejected during an active `ALARM` per Rule 3 below)
+- **ALARM** — set the moment **any single** hazard sensor crosses its threshold (flame, water, temperature, or an Arduino fault). No need for multiple simultaneous problems — one confirmed hazard is enough.
+- RFID-invalid and wrong-PIN do **not** trigger `ALARM` — they stay a local response only (buzzer beep, LED, logged event). A single mistyped badge or PIN should not lock the admin out of the dashboard.
+
 ### UART Protocol (STM32 ↔ Pi)
 
 Custom framed binary protocol — not plain text:
@@ -127,7 +132,15 @@ Custom framed binary protocol — not plain text:
 [SOF 0xAA] [LEN] [MSG_TYPE] [PAYLOAD...] [CRC8] [EOF 0x55]
 ```
 
-**Message types:** `SENSOR_DATA`, `ALARM_EVENT`, `STATUS_UPDATE`, `ACK`, `COMMAND`
+**Message types:**
+
+| Type | Direction | Sent when |
+|------|-----------|-----------|
+| `SENSOR_DATA` | STM32 → Pi | Routinely, every `CommsTask` cycle (500ms) |
+| `ALARM_EVENT` | STM32 → Pi | On state change only — alarm RAISED or CLEARED |
+| `STATUS_UPDATE` | STM32 → Pi | On system state change (ARMED / DISARMED / ALARM) |
+| `COMMAND` | Pi → STM32 | Admin action sent from the dashboard |
+| `ACK` | STM32 → Pi | Reply to a `COMMAND`; carries a result field: `ACCEPTED` or `REJECTED` |
 
 This teaches: protocol framing, CRC calculation, state machine parsing — skills directly used in CAN, Modbus, and every industrial protocol. Document it in `docs/protocol_spec.md`.
 
@@ -138,7 +151,7 @@ This teaches: protocol framing, CRC calculation, state machine parsing — skill
 | I2C (master) | Read Arduino slave |
 | UART + DMA | Non-blocking TX/RX to Pi |
 | SPI | RFID RC522 |
-| GPIO interrupt | Vibration sensor SW-520D, RFID IRQ |
+| GPIO interrupt | RFID IRQ |
 | Timer PWM | Servo, stepper motor |
 | IWDG | Hardware watchdog |
 | Shift register SN74HC595 | Drive 8x8 LED matrix |
@@ -213,6 +226,14 @@ Constants (per MISRA Rule 2):
 ### Rule 2 — Pi UART Silence
 
 If Pi stops acknowledging for >5 seconds, STM32 continues operating autonomously. Safety logic **never** depends on the Pi being online. The Pi is a supervisor, not a controller.
+
+### Rule 3 — Command Rejection During Active Alarms
+
+While any alarm is active, the STM32 rejects **all** incoming `COMMAND` frames — no exceptions, no partial overrides. The Pi cannot countermand safety logic once a hazard is in progress; it can only watch and wait like everyone else. Result is reported back via `ACK(REJECTED)`.
+
+### Rule 4 — Task Stall Detection (Watchdog)
+
+`WatchdogTask` does not feed the IWDG unconditionally on a timer — that would let one dead task hide behind the others still running. Instead, each of the other 6 tasks sets an "alive" flag at the end of every loop iteration. Every 1000ms, `WatchdogTask` checks that **all 6** flags were set since the last check, clears them, and only then feeds the IWDG. If even one task (e.g. `SafetyTask`) fails to check in, the watchdog is deliberately left unfed, the hardware timer expires, and the MCU force-resets back to a known working state.
 
 ---
 
@@ -322,7 +343,6 @@ uint8_t buffer[16];
 | Water module | Arduino | Leak detection |
 | Big Sound module | Arduino | Noise detection |
 | Photoresistance | Arduino | Light level |
-| Vibration SW-520D x2 | STM32 | Shock / vibration (interrupt-driven) |
 | RFID RC522 | STM32 | SPI, access control |
 | 4x4 Keypad | STM32 | PIN entry, ARM/DISARM |
 | 5V Relay | STM32 | Power cut actuator |
@@ -335,7 +355,6 @@ uint8_t buffer[16];
 | RGB LED | STM32 | System state indicator |
 | RTC Clock Module | STM32 | Timestamps for events |
 | 7-Segment Display | STM32 | Numeric display (temp readout) |
-| IR Receiver | STM32 | Remote control override |
 
 ---
 
@@ -370,7 +389,6 @@ uint8_t buffer[16];
 ### Phase 3 — Safety Logic (1 week)
 
 - Implement all threshold logic in `SafetyTask`
-- Wire vibration sensors with GPIO interrupts
 - Test: trigger flame sensor → relay cuts in <20ms
 - Test: unplug Arduino I2C → SYSTEM_FAULT alarm within 300ms
 
