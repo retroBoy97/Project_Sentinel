@@ -1,3 +1,7 @@
+#ifndef TASKS_H
+
+#define TASKS_H
+
 // Poll Arduino Sensor values
 void SensorPollTask(void* arguments);
 
@@ -18,3 +22,5 @@ void CommsTask(void* arguments);
 
 // Feed hardware watchdog and detect task stalls
 void WatchdogTask(void* arguments);
+
+#endif
