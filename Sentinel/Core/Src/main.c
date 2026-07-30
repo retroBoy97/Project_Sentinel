@@ -47,20 +47,6 @@
 
 /* USER CODE BEGIN PV */
 
-const osThreadAttr_t actuatorTask_attributes = {
-		.name = "ActuatorTask",
-		.stack_size = 128 * 4,
-		.priority = (osPriority_t) osPriorityNormal,
-};
-
-const osThreadAttr_t sensorPollTask_attributes = {
-		.name = "SensorPollTask",
-		.stack_size = 128 * 4,
-		.priority = (osPriority_t) osPriorityNormal,
-};
-
-
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
