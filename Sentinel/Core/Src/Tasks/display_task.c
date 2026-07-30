@@ -9,6 +9,6 @@
 
 void DisplayTask(void* arguments){
 	for(;;){
-		osDelay(100);
+		osDelay(200);
 	}
 }

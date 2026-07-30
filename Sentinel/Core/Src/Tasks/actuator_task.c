@@ -10,6 +10,6 @@
 
 void ActuatorTask(void* arguments){
 	for(;;){
-		osDelay(100);
+		osDelay(50);
 	}
 }

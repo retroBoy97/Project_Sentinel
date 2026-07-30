@@ -11,6 +11,6 @@
 
 void SafetyTask(void* arguments){
 	for(;;){
-		osDelay(100);
+		osDelay(20);
 	}
 }

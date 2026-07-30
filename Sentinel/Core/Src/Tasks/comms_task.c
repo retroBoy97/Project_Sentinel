@@ -10,6 +10,6 @@
 
 void CommsTask(void* arguments){
 	for(;;){
-		osDelay(100);
+		osDelay(500);
 	}
 }
