@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "tasks.h"
 
 /* USER CODE END Includes */
 
@@ -138,6 +139,13 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  osThreadId_t actuatorTaskHandle = osThreadNew(ActuatorTask, NULL, &actuatorTask_attributes);
+  osThreadId_t commsTaskHandle = osThreadNew(CommsTask, NULL, &commsTask_attributes);
+  osThreadId_t displayTaskHandle = osThreadNew(DisplayTask, NULL, &displayTask_attributes);
+  osThreadId_t localSensorTaskHandle = osThreadNew(LocalSensorTask, NULL, &localSensorTask_attributes);
+  osThreadId_t safetyTaskHandle = osThreadNew(SafetyTask, NULL, &safetyTask_attributes);
+  osThreadId_t sensorPollTaskHandle = osThreadNew(SensorPollTask, NULL, &sensorPollTask_attributes);
+  osThreadId_t watchdogTaskHandle = osThreadNew(WatchdogTask, NULL, &watchdogTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
