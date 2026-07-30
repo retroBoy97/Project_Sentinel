@@ -46,6 +46,48 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+const osThreadAttr_t sensorPollTask_attributes = {
+		.name = "SensorPollTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityNormal,
+};
+
+const osThreadAttr_t localSensorTask_attributes = {
+		.name = "LocalSensorTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityNormal,
+};
+
+const osThreadAttr_t safetyTask_attributes = {
+		.name = "SafetyTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityHigh,
+};
+
+const osThreadAttr_t actuatorTask_attributes = {
+		.name = "ActuatorTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityNormal,
+};
+
+const osThreadAttr_t displayTask_attributes = {
+		.name = "DisplayTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityLow,
+};
+
+const osThreadAttr_t commsTask_attributes = {
+		.name = "CommsTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityNormal,
+};
+
+const osThreadAttr_t watchdogTask_attributes = {
+		.name = "WatchdogTask",
+		.stack_size = 128 * 4,
+		.priority = (osPriority_t) osPriorityHigh,
+};
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
