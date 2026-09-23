@@ -95,11 +95,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-  DRV_GPIO_STATUS status = drv_gpio_init_output(GPIOA, 5, DRV_GPIO_LOW);
-  //DRV_GPIO_STATUS status = drv_gpio_init_input(GPIOA, 5, DRV_GPIO_PULL_UP);
-  status = drv_gpio_toggle(GPIOA,5);
-  HAL_Delay(1000);
-
 
   /* USER CODE END 2 */
 
