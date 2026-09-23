@@ -49,16 +49,16 @@ DRV_GPIO_STATUS drv_gpio_init_output(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_G
 	gpio_port -> OTYPER &= ~(1U << pin);
 
 	// Configure OSPEEDR pin to LOW speed: how fast the voltage ramps from 0V to 3.3V (or back)
-	gpio_port -> OSPEEDR &= ~(1U << 2 * pin);
-	gpio_port -> OSPEEDR &= ~(1U << 2 * pin + 1);
+	gpio_port -> OSPEEDR &= ~(1U << (2 * pin));
+	gpio_port -> OSPEEDR &= ~(1U << (2 * pin + 1));
 
 	// Configure PUPDR to no pull: this must happen before MODER, since PUPDR only has any
 	// effect while the pin isn't yet being actively driven, i.e. the gap before this point
-	gpio_port -> PUPDR &= ~(1U << 2 * pin);
-	gpio_port -> PUPDR &= ~(1U << 2 * pin + 1);
+	gpio_port -> PUPDR &= ~(1U << (2 * pin));
+	gpio_port -> PUPDR &= ~(1U << (2 * pin + 1));
 
 	// Set Output Mode for pin, last: everything above must be in place before the pin goes live
-	gpio_port -> MODER |= (1U << 2 * pin);
+	gpio_port -> MODER |= (1U << (2 * pin));
 	gpio_port -> MODER &= ~(1U << (2 * pin + 1));
 
 	return DRV_GPIO_OK;
