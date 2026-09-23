@@ -22,6 +22,7 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
+#include "drv_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -102,6 +103,9 @@ int main(void)
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
+  //DRV_GPIO_STATUS status = drv_gpio_init_output(GPIOA, 5, DRV_GPIO_HIGH);
+  DRV_GPIO_STATUS status = drv_gpio_init_input(GPIOA, 5, DRV_GPIO_PULL_UP);
+
 
   /* Start scheduler */
   osKernelStart();
