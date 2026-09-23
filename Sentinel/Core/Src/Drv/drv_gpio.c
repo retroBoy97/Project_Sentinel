@@ -86,11 +86,32 @@ DRV_GPIO_STATUS drv_gpio_init_input(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GP
 }
 
 DRV_GPIO_STATUS drv_gpio_write(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_LEVEL level){
+	if (pin > DRV_GPIO_PIN_MAX){
+	      return DRV_GPIO_ERROR;
+	}
 
+	if (level == DRV_GPIO_HIGH){
+		gpio_port -> BSRR = (1U << pin);
+	}
+	else{
+		gpio_port -> BSRR = (1U << (pin + 16));
+	}
+
+	return DRV_GPIO_OK;
 }
 
 DRV_GPIO_STATUS drv_gpio_toggle(GPIO_TypeDef* gpio_port, uint8_t pin){
+	if (pin > DRV_GPIO_PIN_MAX){
+		return DRV_GPIO_ERROR;
+	}
 
+	if (gpio_port -> ODR & (1U << pin)){
+		gpio_port -> BSRR = (1U << (pin + 16));
+	}
+	else{
+		gpio_port -> BSRR = (1U << pin);
+	}
+	return DRV_GPIO_OK;
 }
 
 
