@@ -1,5 +1,5 @@
-#ifndef DRV_LED_H
-#define DRV_LED_H
+#ifndef LED_H
+#define LED_H
 
 #include "stm32f4xx.h"
 
@@ -17,8 +17,8 @@ static const Led GREEN_LED = {GPIOC, 5U};
 static const Led BLUE_LED = {GPIOC, 8U};
 static const Led RED_LED = {GPIOC, 6U};
 
-DRV_LED_STATUS turn_on_led(const Led* led);
-DRV_LED_STATUS turn_off_led(const Led* led);
-DRV_LED_STATUS toggle_led(const Led* led);
+DRV_LED_STATUS led_turn_on(const Led* led);
+DRV_LED_STATUS led_turn_off(const Led* led);
+DRV_LED_STATUS led_toggle(const Led* led);
 
-#endif /* DRV_LED_H */
+#endif /* LED_H */
