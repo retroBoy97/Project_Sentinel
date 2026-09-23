@@ -1,0 +1,22 @@
+# STM32CubeIDE build output (regenerated on every build)
+Sentinel/Debug/
+Sentinel/Release/
+
+# Build artifact extensions, in case any land outside Debug/Release
+*.o
+*.d
+*.su
+*.cyclo
+*.elf
+*.map
+*.list
+*.bin
+*.hex
+
+# Eclipse/CubeIDE indexer cache (auto-regenerated, not real project config)
+Sentinel/.settings/language.settings.xml
+
+# OS/editor junk
+Thumbs.db
+.DS_Store
+*.swp
