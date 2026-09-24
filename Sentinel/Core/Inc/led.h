@@ -17,6 +17,7 @@ static const Led GREEN_LED = {GPIOC, 5U};
 static const Led BLUE_LED = {GPIOC, 8U};
 static const Led RED_LED = {GPIOC, 6U};
 
+LED_STATUS led_init(const Led* led);
 LED_STATUS led_turn_on(const Led* led);
 LED_STATUS led_turn_off(const Led* led);
 LED_STATUS led_toggle(const Led* led);
