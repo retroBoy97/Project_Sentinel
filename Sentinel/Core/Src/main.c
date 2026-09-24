@@ -24,6 +24,7 @@
 #include "gpio.h"
 #include "drv_gpio.h"
 #include "led.h"
+#include "buzzer.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -96,7 +97,18 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+  DRV_GPIO_STATUS init_status = drv_gpio_init_output(GPIOC, 5U, DRV_GPIO_LOW);
+  init_status = drv_gpio_init_output(GPIOC, 6U, DRV_GPIO_LOW);
+  init_status = drv_gpio_init_output(GPIOC, 8U, DRV_GPIO_LOW);
+  init_status = drv_gpio_init_output(GPIOC, 9U, DRV_GPIO_LOW);
 
+  LED_STATUS led_status = led_turn_on(&GREEN_LED);
+  led_status = led_turn_on(&BLUE_LED);
+  led_status = led_turn_on(&RED_LED);
+
+  BUZZER_STATUS buzzer_status = buzzer_turn_on(&BUZZER);
+  HAL_Delay(1000);
+  buzzer_status = buzzer_turn_off(&BUZZER);
   /* USER CODE END 2 */
 
   /* Init scheduler */
