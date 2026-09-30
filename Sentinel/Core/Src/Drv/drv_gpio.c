@@ -114,6 +114,21 @@ DRV_GPIO_STATUS drv_gpio_toggle(GPIO_TypeDef* gpio_port, uint8_t pin){
 	return DRV_GPIO_OK;
 }
 
+DRV_GPIO_STATUS drv_gpio_read(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_LEVEL* level){
+	if (pin > DRV_GPIO_PIN_MAX){
+		return DRV_GPIO_ERROR;
+	}
+
+	if (gpio_port -> IDR & (1U << pin)){
+		*level = DRV_GPIO_HIGH;
+	}
+	else{
+		*level = DRV_GPIO_LOW;
+	}
+
+	return DRV_GPIO_OK;
+}
+
 
 
 
