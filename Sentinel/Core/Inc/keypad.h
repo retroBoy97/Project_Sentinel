@@ -30,5 +30,6 @@ extern uint8_t password_length;
 KEYPAD_STATUS keypad_init(const Keypad* keypad, char* password);
 KEYPAD_STATUS keypad_set_password(const char* new_password, uint8_t new_length);
 KEYPAD_STATUS keypad_scan(const Keypad* keypad);
+void validate_password(char entered_password[], char valid_password[]);
 
 #endif /* KEYPAD_H */
