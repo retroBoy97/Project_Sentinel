@@ -53,10 +53,19 @@ KEYPAD_STATUS keypad_set_password(const char* new_password, uint8_t new_length){
 KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 	static char entered_password[KEYPAD_PASSWORD_MAX_LENGTH] = "";
 	static char entered_character_index;
+
+	// GPIO operations status
 	DRV_GPIO_STATUS status;
+
+	// Detects if a key is pressed in this pass
+	uint8_t key_found_this_pass = 0U;
+
+	// is the current pressed key a new button press?
+	static uint8_t key_already_pressed = 0U;
 
 	// Loop over the rows
 	for (uint8_t row = 0; row < 4; row++){
+
 		// Drive the rows LOW one at a time
 		status = drv_gpio_write(keypad -> rows_gpio_port, keypad -> row_pins[row], DRV_GPIO_LOW);
 
@@ -76,7 +85,11 @@ KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 			}
 
 			// Check if the current column reads LOW
-			if (column_level == DRV_GPIO_LOW){
+			if (column_level == DRV_GPIO_LOW && ! key_already_pressed){
+				// Update the flags
+				key_already_pressed = 1;
+				key_found_this_pass = 1;
+
 				entered_password[entered_character_index] = KEYPAD_MAP[row][column];
 				entered_character_index++;
 				HAL_UART_Transmit(&huart2, (uint8_t*) &KEYPAD_MAP[row][column], 1, 10000);
@@ -91,6 +104,10 @@ KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 
 		// Drive the row back to HIGH
 		status = drv_gpio_write(keypad -> rows_gpio_port, keypad -> row_pins[row], DRV_GPIO_HIGH);
+	}
+
+	if(!key_found_this_pass){
+		key_already_pressed = 0;
 	}
 
 	return KEYPAD_OK;
