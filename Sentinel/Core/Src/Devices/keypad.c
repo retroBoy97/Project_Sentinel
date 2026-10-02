@@ -85,19 +85,23 @@ KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 			}
 
 			// Check if the current column reads LOW
-			if (column_level == DRV_GPIO_LOW && ! key_already_pressed){
-				// Update the flags
-				key_already_pressed = 1;
+			if (column_level == DRV_GPIO_LOW){
+				// Something is pressed this pass, regardless of whether it's new
 				key_found_this_pass = 1;
 
-				entered_password[entered_character_index] = KEYPAD_MAP[row][column];
-				entered_character_index++;
-				HAL_UART_Transmit(&huart2, (uint8_t*) &KEYPAD_MAP[row][column], 1, 10000);
+				// Only register it if it wasn't already registered
+				if (!key_already_pressed){
+					key_already_pressed = 1;
 
-				if (entered_character_index == password_length){
-					// Validate the entered passowrd
-					//validate_password(entered_password, PASSWORD);
-					entered_character_index = 0;
+					entered_password[entered_character_index] = KEYPAD_MAP[row][column];
+					entered_character_index++;
+					HAL_UART_Transmit(&huart2, (uint8_t*) &KEYPAD_MAP[row][column], 1, 10000);
+
+					if (entered_character_index == password_length){
+						// Validate the entered passowrd
+						//validate_password(entered_password, PASSWORD);
+						entered_character_index = 0;
+					}
 				}
 			}
 		}
