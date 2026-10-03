@@ -99,7 +99,7 @@ KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 
 					if (entered_character_index == password_length){
 						// Validate the entered passowrd
-						//validate_password(entered_password, PASSWORD);
+						validate_password(entered_password, PASSWORD);
 						entered_character_index = 0;
 					}
 				}
@@ -121,8 +121,8 @@ KEYPAD_STATUS keypad_scan(const Keypad* keypad){
 // To be implemented: Logic with screen, buzzer and Leds
 void validate_password(char entered_password[], char valid_password[]){
 	int cmp = strcmp(entered_password, valid_password);
-	const char success_msg[] = "correct password";
-	const char error_msg[] = "wrong password, try again";
+	const char success_msg[] = "\r\ncorrect password\r\n";
+	const char error_msg[] = "\r\nwrong password, try again\r\n";
 
 	if (cmp == 0){
 		HAL_UART_Transmit(&huart2, (uint8_t*)success_msg, strlen(success_msg), 10000);
