@@ -23,6 +23,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "drv_gpio.h"
+#include "drv_exti.h"
 #include "led.h"
 #include "buzzer.h"
 #include "relay.h"
@@ -116,6 +117,11 @@ int main(void)
   relay_status = relay_restore_power(&RELAY);
   HAL_Delay(1000);
   relay_status = relay_cut_power(&RELAY);
+
+  // --- EXTI (PA10) test ---
+  DRV_GPIO_STATUS pa10_status = drv_gpio_init_input(GPIOA, 10U, DRV_GPIO_PULL_UP);
+  DRV_EXTI_STATUS exti_status = drv_exti_init(GPIOA, 10U, DRV_EXTI_FALLING_EDGE);
+  exti_status = drv_exti_enable(EXTI15_10_IRQn, 5U);
   /* USER CODE END 2 */
 
   /* Init scheduler */
