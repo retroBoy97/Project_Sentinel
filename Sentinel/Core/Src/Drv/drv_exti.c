@@ -60,7 +60,7 @@ DRV_EXTI_STATUS drv_exti_init(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_EXTI_EDG
 	// Enable SYSCFG clock
 	RCC -> APB2ENR |= (1U << RCC_APB2ENR_SYSCFGEN_Pos);
 
-	// Route the EXTI line gpio_port
+	// Route the EXTI line to gpio_port
 	volatile uint32_t* control_register = &SYSCFG -> EXTICR[pin / 4]; // The used control register from SYSCFG
 	uint8_t offset = (pin % 4) * 4U; // EXTI line offset in that register
 	if (drv_set_exti_line(gpio_port, control_register, offset) != DRV_EXTI_OK){
