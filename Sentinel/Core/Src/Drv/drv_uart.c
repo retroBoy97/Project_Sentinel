@@ -58,6 +58,38 @@ DRV_UART_STATUS drv_uart_init(USART_TypeDef* usart_peripheral, DRV_UART_MODE mod
 	// Set the baud rate register
 	usart_peripheral -> BRR = brr_value;
 
+	// Set the USART Enable bit in Control Register 1 (CR1), done last once everything is configured
+	usart_peripheral -> CR1 |= USART_CR1_UE;
+
+	return DRV_UART_OK;
+}
+
+/* Sends data_size bytes from data over usart_peripheral, blocking until transmission completes */
+DRV_UART_STATUS drv_uart_transmit(USART_TypeDef* usart_peripheral, uint8_t* data, uint16_t data_size){
+	// Safety check: validate usart_peripheral and data are not NULL
+	if (usart_peripheral == NULL || data == NULL){
+		return DRV_UART_ERROR;
+	}
+
+	// Safety check: validate there is something to send
+	if (data_size == 0U){
+		return DRV_UART_ERROR;
+	}
+
+	// Add a timeout that returns DRV_UART_ERROR instead of hanging the calling task.
+
+	// Loop over data
+	for (uint16_t i = 0U; i < data_size; i++){
+		// Wait until Transmit Data Register (TDR) is empty
+		while (!(usart_peripheral -> SR & USART_SR_TXE)){}
+
+		// Write current byte into Data Register (DR)
+		usart_peripheral -> DR = data[i];
+	}
+
+	// Wait until Transmission is complete
+	while (!(usart_peripheral -> SR & USART_SR_TC)){}
+
 	return DRV_UART_OK;
 }
 
