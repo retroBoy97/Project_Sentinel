@@ -39,16 +39,17 @@ DRV_UART_STATUS drv_uart_init(USART_TypeDef* usart_peripheral, DRV_UART_MODE mod
 		usart_peripheral -> CR1 |= USART_CR1_RE;
 	}
 
-	// Compute usart_peripheral Baud Rate register's value
-	// USART2 is clocked by APB1, USART1 and USART6 by APB2
+	/* Compute usart_peripheral Baud Rate register's value */
+	// Get usart_peripheral's clock speed
 	uint32_t clock_speed = 0U;
 	if (usart_peripheral == USART2){
-		clock_speed = HAL_RCC_GetPCLK1Freq();
+		clock_speed = HAL_RCC_GetPCLK1Freq(); // USART2 is clocked by APB1
 	}
 	else{
-		clock_speed = HAL_RCC_GetPCLK2Freq();
+		clock_speed = HAL_RCC_GetPCLK2Freq(); // USART1 and USART6 are clocked by APB2
 	}
 
+	// Calculate the value that should be held by BRR
 	uint16_t brr_value = 0U;
 	if (compute_BRR_value(clock_speed, baud_rate, &brr_value) == DRV_UART_ERROR){
 		return DRV_UART_ERROR;
@@ -62,7 +63,6 @@ DRV_UART_STATUS drv_uart_init(USART_TypeDef* usart_peripheral, DRV_UART_MODE mod
 
 /* Computes the BRR register value (16x oversampling) for the given peripheral clock speed and baud rate */
 DRV_UART_STATUS compute_BRR_value(uint32_t clock_speed, uint32_t baud_rate, uint16_t* BRR_value){
-	// Safety check: validate clock_speed and baud_rate are not 0
 	if (clock_speed == 0U || baud_rate == 0U){
 		return DRV_UART_ERROR;
 	}
@@ -72,7 +72,7 @@ DRV_UART_STATUS compute_BRR_value(uint32_t clock_speed, uint32_t baud_rate, uint
 		return DRV_UART_ERROR;
 	}
 
-	// (Mantissa << 4) + Fraction, rounded: the two 16s cancel, leaving round(clock_speed / baud_rate)
+	// (Mantissa << 4) + Fraction
 	uint32_t brr = (clock_speed + (baud_rate / 2U)) / baud_rate;
 
 	// Safety check: validate the result fits in the 16-bit BRR field (fails for baud rates too low for clock_speed)
