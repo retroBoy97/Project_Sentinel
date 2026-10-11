@@ -66,13 +66,8 @@ DRV_UART_STATUS drv_uart_init(USART_TypeDef* usart_peripheral, DRV_UART_MODE mod
 
 /* Sends data_size bytes from data over usart_peripheral, blocking until transmission completes */
 DRV_UART_STATUS drv_uart_transmit(USART_TypeDef* usart_peripheral, uint8_t* data, uint16_t data_size){
-	// Safety check: validate usart_peripheral and data are not NULL
-	if (usart_peripheral == NULL || data == NULL){
-		return DRV_UART_ERROR;
-	}
-
-	// Safety check: validate there is something to send
-	if (data_size == 0U){
+	// Safety check: validate usart_peripheral and data are not NULL, and there is something to send
+	if (usart_peripheral == NULL || data == NULL || data_size == 0U){
 		return DRV_UART_ERROR;
 	}
 
@@ -89,6 +84,59 @@ DRV_UART_STATUS drv_uart_transmit(USART_TypeDef* usart_peripheral, uint8_t* data
 
 	// Wait until Transmission is complete
 	while (!(usart_peripheral -> SR & USART_SR_TC)){}
+
+	return DRV_UART_OK;
+}
+
+/* Reads data_size bytes into data from usart_peripheral, blocking until reception completes */
+DRV_UART_STATUS drv_uart_receive(USART_TypeDef* usart_peripheral, uint8_t* data, uint16_t data_size){
+	// Safety check: validate usart_peripheral and data are not NULL, and there is something to receive
+	if (usart_peripheral == NULL || data == NULL || data_size == 0U){
+		return DRV_UART_ERROR;
+	}
+
+	// Add a timeout that returns DRV_UART_ERROR instead of hanging the calling task.
+
+	// Loop over data
+	for (uint16_t i = 0U; i < data_size; i++){
+		// Wait until Receive Data Register (RDR) is not empty
+		while (!(usart_peripheral -> SR & USART_SR_RXNE)){}
+
+		// Read SR once, then DR: reading DR returns RDR's byte and clears RXNE (and ORE, since SR was read just before)
+		uint32_t status = usart_peripheral -> SR;
+		data[i] = (uint8_t)(usart_peripheral -> DR);
+
+		// Overrun: a byte arrived before the previous one was read and was lost, so the received data is incomplete
+		if (status & USART_SR_ORE){
+			return DRV_UART_ERROR;
+		}
+	}
+
+	return DRV_UART_OK;
+}
+
+/* Reads a single byte already received into usart_peripheral's data register (for use inside the RX ISR) */
+DRV_UART_STATUS drv_uart_read_byte(USART_TypeDef* usart_peripheral, uint8_t* byte){
+	// Safety check: validate usart_peripheral and byte are not NULL
+	if (usart_peripheral == NULL || byte == NULL){
+		return DRV_UART_ERROR;
+	}
+
+	// Read SR once: the copy is used for both checks below, since reading DR clears RXNE and ORE in the real register
+	uint32_t status = usart_peripheral -> SR;
+
+	// The USART interrupt line is shared by several sources: if RXNE is not set, no new byte is waiting in RDR
+	if (!(status & USART_SR_RXNE)){
+		return DRV_UART_ERROR;
+	}
+
+	// Read DR: returns RDR's byte and clears RXNE (and ORE, since SR was read just before)
+	*byte = (uint8_t)(usart_peripheral -> DR);
+
+	// Overrun: a byte arrived before the previous one was read and was lost
+	if (status & USART_SR_ORE){
+		return DRV_UART_ERROR;
+	}
 
 	return DRV_UART_OK;
 }
