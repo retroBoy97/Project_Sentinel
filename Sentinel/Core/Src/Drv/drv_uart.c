@@ -1,6 +1,8 @@
 #include "drv_uart.h"
 #include "stm32f4xx_hal.h"
 
+#define DRV_UART_PRIORITY_MAX 15U
+
 static DRV_UART_STATUS drv_uart_enable_clock(USART_TypeDef* usart_peripheral){
 	if (usart_peripheral == USART1){
 		// Set USART1 enable bit in RCC_APB2ENR
@@ -58,7 +60,7 @@ DRV_UART_STATUS drv_uart_init(USART_TypeDef* usart_peripheral, DRV_UART_MODE mod
 	// Set the baud rate register
 	usart_peripheral -> BRR = brr_value;
 
-	// Set the USART Enable bit in Control Register 1 (CR1), done last once everything is configured
+	// Set the USART Enable bit in Control Register 1 (CR1)
 	usart_peripheral -> CR1 |= USART_CR1_UE;
 
 	return DRV_UART_OK;
@@ -71,7 +73,7 @@ DRV_UART_STATUS drv_uart_transmit(USART_TypeDef* usart_peripheral, uint8_t* data
 		return DRV_UART_ERROR;
 	}
 
-	// Add a timeout that returns DRV_UART_ERROR instead of hanging the calling task.
+	/* Add a timeout that returns DRV_UART_ERROR instead of hanging the calling task. */
 
 	// Loop over data
 	for (uint16_t i = 0U; i < data_size; i++){
@@ -115,6 +117,28 @@ DRV_UART_STATUS drv_uart_receive(USART_TypeDef* usart_peripheral, uint8_t* data,
 	return DRV_UART_OK;
 }
 
+/* Configures NVIC for the USART RX-not-empty interrupt */
+DRV_UART_STATUS drv_uart_enable_rx_interrupt(USART_TypeDef* usart_peripheral, IRQn_Type irqn, uint8_t priority){
+	if (usart_peripheral == NULL || irqn < 0 || priority > DRV_UART_PRIORITY_MAX){
+		return DRV_UART_ERROR;
+	}
+
+	// Peripheral side: set the RXNE Interrupt Enable bit in Control Register 1 (CR1)
+	// so the USART raises its interrupt line when RXNE (or ORE) is set
+	usart_peripheral -> CR1 |= USART_CR1_RXNEIE;
+
+	// Set the Interrupt priority in NVIC Interrupt Priority Register (NVIC_IPRx)
+	volatile uint8_t* priority_register = &NVIC -> IP[(uint8_t)irqn];
+	*priority_register = (uint8_t)(priority << (8U - __NVIC_PRIO_BITS));
+
+	// Set the Interrupt Set-Enable Register (NVIC_ISERx) to let the interrupt reach the CPU
+	volatile uint32_t* interrupt_set_enable_register = &NVIC -> ISER[(uint8_t)irqn / 32];
+	uint8_t offset = (uint8_t)irqn % 32;
+	*interrupt_set_enable_register |= (1U << offset);
+
+	return DRV_UART_OK;
+}
+
 /* Reads a single byte already received into usart_peripheral's data register (for use inside the RX ISR) */
 DRV_UART_STATUS drv_uart_read_byte(USART_TypeDef* usart_peripheral, uint8_t* byte){
 	// Safety check: validate usart_peripheral and byte are not NULL
@@ -143,12 +167,7 @@ DRV_UART_STATUS drv_uart_read_byte(USART_TypeDef* usart_peripheral, uint8_t* byt
 
 /* Computes the BRR register value (16x oversampling) for the given peripheral clock speed and baud rate */
 DRV_UART_STATUS compute_BRR_value(uint32_t clock_speed, uint32_t baud_rate, uint16_t* BRR_value){
-	if (clock_speed == 0U || baud_rate == 0U){
-		return DRV_UART_ERROR;
-	}
-
-	// Safety check: validate BRR_value is not NULL
-	if (BRR_value == NULL){
+	if (clock_speed == 0U || baud_rate == 0U || BRR_value == NULL){
 		return DRV_UART_ERROR;
 	}
 
