@@ -1,6 +1,7 @@
 #include "drv_gpio.h"
 
 #define DRV_GPIO_PIN_MAX (15U)
+#define DRV_GPIO_AF_MAX  (15U)
 
 static DRV_GPIO_STATUS drv_gpio_enable_clock(GPIO_TypeDef* gpio_port){
 	if (gpio_port == GPIOA){
@@ -81,6 +82,39 @@ DRV_GPIO_STATUS drv_gpio_init_input(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GP
 	// since "pull" is a variable here rather than a single fixed target like output mode was)
 	gpio_port -> PUPDR &= ~(3U << (2U * pin));
 	gpio_port -> PUPDR |= ((uint32_t)pull << (2U * pin));
+
+	return DRV_GPIO_OK;
+}
+
+DRV_GPIO_STATUS drv_gpio_init_alternate_function(GPIO_TypeDef* gpio_port, uint8_t pin, uint8_t alternate_function, DRV_GPIO_PULL pull){
+	// Safety check: validate pin (0-15) and alternate_function (AF0-AF15) are within range
+	if (pin > DRV_GPIO_PIN_MAX || alternate_function > DRV_GPIO_AF_MAX){
+		return DRV_GPIO_ERROR;
+	}
+
+	if (drv_gpio_enable_clock(gpio_port) != DRV_GPIO_OK){
+		return DRV_GPIO_ERROR;
+	}
+
+	// Select the alternate function in AFR
+	volatile uint32_t* alternate_function_register = &gpio_port -> AFR[pin / 8U];
+	uint8_t offset = (pin % 8U) * 4U; // pin's 4-bit field offset in that register
+	*alternate_function_register &= ~(0xFU << offset);
+	*alternate_function_register |= ((uint32_t)alternate_function << offset);
+
+	// Configure OTYPER to push-pull mode
+	gpio_port -> OTYPER &= ~(1U << pin);
+
+	// Configure OSPEEDR pin to LOW speed: how fast the voltage ramps from 0V to 3.3V (or back)
+	gpio_port -> OSPEEDR &= ~(3U << (2U * pin));
+
+	// Configure PUPDR to the requested pull
+	gpio_port -> PUPDR &= ~(3U << (2U * pin));
+	gpio_port -> PUPDR |= ((uint32_t)pull << (2U * pin));
+
+	// Set Alternate Function Mode for pin (10)
+	gpio_port -> MODER &= ~(1U << (2U * pin));
+	gpio_port -> MODER |= (1U << (2U * pin + 1U));
 
 	return DRV_GPIO_OK;
 }
