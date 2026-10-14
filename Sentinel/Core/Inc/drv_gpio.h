@@ -22,6 +22,7 @@ typedef enum{
 
 DRV_GPIO_STATUS drv_gpio_init_output(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_LEVEL level);
 DRV_GPIO_STATUS drv_gpio_init_input(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_PULL pull);
+DRV_GPIO_STATUS drv_gpio_init_alternate_function(GPIO_TypeDef* gpio_port, uint8_t pin, uint8_t alternate_function, DRV_GPIO_PULL pull);
 DRV_GPIO_STATUS drv_gpio_write(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_LEVEL level);
 DRV_GPIO_STATUS drv_gpio_toggle(GPIO_TypeDef* gpio_port, uint8_t pin);
 DRV_GPIO_STATUS drv_gpio_read(GPIO_TypeDef* gpio_port, uint8_t pin, DRV_GPIO_LEVEL* level);
