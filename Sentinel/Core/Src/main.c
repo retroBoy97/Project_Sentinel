@@ -32,6 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "tasks.h"
+#include "drv_uart.h"
 
 /* USER CODE END Includes */
 
@@ -42,6 +43,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// USART6 (STM32 <-> Pi link): PA11 TX / PA12 RX on AF8
+#define USART6_TX_PIN (11U)
+#define USART6_RX_PIN (12U)
+#define USART6_AF     (8U)
 
 /* USER CODE END PD */
 
@@ -122,6 +127,12 @@ int main(void)
   DRV_GPIO_STATUS pa10_status = drv_gpio_init_input(GPIOA, 10U, DRV_GPIO_PULL_UP);
   DRV_EXTI_STATUS exti_status = drv_exti_init(GPIOA, 10U, DRV_EXTI_FALLING_EDGE);
   exti_status = drv_exti_enable(EXTI15_10_IRQn, 5U);
+
+  // --- USART6 (STM32 <-> Pi link) pins: TX driven by the STM32 (no pull), RX pulled up to idle HIGH when nothing drives it ---
+  DRV_GPIO_STATUS uart_pin_status = drv_gpio_init_alternate_function(GPIOA, USART6_TX_PIN, USART6_AF, DRV_GPIO_PULL_NONE);
+  uart_pin_status = drv_gpio_init_alternate_function(GPIOA, USART6_RX_PIN, USART6_AF, DRV_GPIO_PULL_UP);
+
+  DRV_UART_STATUS uart_status = drv_uart_init(USART6, DRV_UART_MODE_FULL_DUPLEX, 115200);
   /* USER CODE END 2 */
 
   /* Init scheduler */
