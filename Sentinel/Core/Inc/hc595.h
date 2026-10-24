@@ -17,6 +17,8 @@ typedef struct{
 	uint8_t stcp_pin;
 }Hc595;
 
+static const Hc595 HC595 = {GPIOC, 4U, GPIOC, 7U, GPIOC, 10U};
+
 /* Initializes HC595 gpio pins */
 HC595_STATUS hc595_init(const Hc595* hc595);
 /* Updates the content of the shift register by shifting bit by bit */
