@@ -2,6 +2,11 @@
 #include "drv_gpio.h"
 
 LED_STATUS led_init(const Led* led){
+	// Safety check: validate led is not NULL
+	if (led == NULL){
+		return LED_ERROR;
+	}
+
 	DRV_GPIO_STATUS status = drv_gpio_init_output(led -> gpio_port, led -> pin, DRV_GPIO_LOW);
 
 	if (status == DRV_GPIO_ERROR){
@@ -11,6 +16,11 @@ LED_STATUS led_init(const Led* led){
 }
 
 LED_STATUS led_turn_on(const Led* led){
+	// Safety check: validate led is not NULL
+	if (led == NULL){
+		return LED_ERROR;
+	}
+
 	DRV_GPIO_STATUS status = drv_gpio_write(led -> gpio_port, led -> pin, DRV_GPIO_HIGH);
 
 	if (status == DRV_GPIO_ERROR){
@@ -20,6 +30,11 @@ LED_STATUS led_turn_on(const Led* led){
 }
 
 LED_STATUS led_turn_off(const Led* led){
+	// Safety check: validate led is not NULL
+	if (led == NULL){
+		return LED_ERROR;
+	}
+
 	DRV_GPIO_STATUS status = drv_gpio_write(led -> gpio_port, led -> pin, DRV_GPIO_LOW);
 
 	if (status == DRV_GPIO_ERROR){
@@ -29,6 +44,11 @@ LED_STATUS led_turn_off(const Led* led){
 }
 
 LED_STATUS led_toggle(const Led* led){
+	// Safety check: validate led is not NULL
+	if (led == NULL){
+		return LED_ERROR;
+	}
+
 	DRV_GPIO_STATUS status = drv_gpio_toggle(led -> gpio_port, led -> pin);
 
 	if (status == DRV_GPIO_ERROR){
