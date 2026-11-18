@@ -20,3 +20,4 @@ Sentinel/.settings/language.settings.xml
 Thumbs.db
 .DS_Store
 *.swp
+Sentinel/Sentinel Debug.launch
