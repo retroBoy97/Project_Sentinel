@@ -33,6 +33,7 @@
 /* USER CODE BEGIN Includes */
 #include "tasks.h"
 #include "drv_uart.h"
+#include "led_matrix.h"
 
 /* USER CODE END Includes */
 
@@ -47,6 +48,10 @@
 #define USART6_TX_PIN (11U)
 #define USART6_RX_PIN (12U)
 #define USART6_AF     (8U)
+
+// LED matrix test: HAL_Delay adds 1 tick, so HAL_Delay(1) waits ~2 ms per row; 2500 refreshes = ~5 s per pattern
+#define MATRIX_TEST_DELAY_MS      (1U)
+#define MATRIX_TEST_REFRESH_COUNT (2500U)
 
 /* USER CODE END PD */
 
@@ -133,6 +138,25 @@ int main(void)
   uart_pin_status = drv_gpio_init_alternate_function(GPIOA, USART6_RX_PIN, USART6_AF, DRV_GPIO_PULL_UP);
 
   DRV_UART_STATUS uart_status = drv_uart_init(USART6, DRV_UART_MODE_FULL_DUPLEX, 115200);
+
+  // --- LED matrix test: OK pattern for ~5 s, then ALARM pattern for ~5 s, then dark ---
+  LED_MATRIX_STATUS matrix_status = led_matrix_init(&LED_MATRIX);
+
+  // init already selected OK_PATTERN
+  for (uint16_t i = 0U; i < MATRIX_TEST_REFRESH_COUNT; i++){
+    matrix_status = led_matrix_refresh(&LED_MATRIX);
+    HAL_Delay(MATRIX_TEST_DELAY_MS);
+  }
+
+  matrix_status = led_matrix_set_pattern(ALARM_PATTERN);
+  for (uint16_t i = 0U; i < MATRIX_TEST_REFRESH_COUNT; i++){
+    matrix_status = led_matrix_refresh(&LED_MATRIX);
+    HAL_Delay(MATRIX_TEST_DELAY_MS);
+  }
+
+  // Refreshes stop here: one last refresh with the blank pattern leaves all columns HIGH, so the last row goes dark
+  matrix_status = led_matrix_set_pattern(BLANK_PATTERN);
+  matrix_status = led_matrix_refresh(&LED_MATRIX);
   /* USER CODE END 2 */
 
   /* Init scheduler */
